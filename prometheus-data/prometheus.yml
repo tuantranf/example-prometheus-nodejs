@@ -9,4 +9,4 @@ rule_files:
 alerting:
   alertmanagers:
     - static_configs:
-      - targets: ['192.168.99.1:9093']
+      - targets: ['alertmanager:9093']

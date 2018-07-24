@@ -1,11 +1,33 @@
 groups:
 - name: my-group-name
   rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      description: "stuff's happening with {{ $labels.service }}"
+  - alert: HighErrorRate
+    expr: job:request_latency_seconds:mean5m{job="myjob"} > 0.5
+    for: 1m
+    labels:
+      severity: page
+    annotations:
+      summary: High request latency
   - alert: APIHighMedianResponseTime
-    expr: histogram_quantile(0.5, sum(rate(http_request_duration_ms_bucket[1m])) by (le, service, route, method)) > 100
+    expr: histogram_quantile(0.5, sum(rate(http_request_duration_ms_bucket[1m])) by (le, service, route, method)) > 10
     for: 60s
     labels:
       severity: page
     annotations:
       summary: "High median response time on {{ $labels.service }} and {{ $labels.method }} {{ $labels.route }}"
+      description: "{{ $labels.service }}, {{ $labels.method }} {{ $labels.route }} has a median response time above 100ms (current value: {{ $value }}ms)"
+  - alert: ErrorRate
+    expr: sum(increase(http_request_duration_ms_count{code=~"^5..$"}[1m])) /  sum(increase(http_request_duration_ms_count[1m])) > 0
+    for: 60s
+    labels:
+      severity: page
+    annotations:
+      summary: "Error rate on {{ $labels.service }} and {{ $labels.method }} {{ $labels.route }}"
       description: "{{ $labels.service }}, {{ $labels.method }} {{ $labels.route }} has a median response time above 100ms (current value: {{ $value }}ms)"

@@ -20,11 +20,11 @@ Setup monitoring with [Prometheus](https://prometheus.io) and [Grafana](https://
 
 ### Run
 
-Modify: `/prometheus-data/prometheus.yml`, replace `192.168.0.10` with your own host machine's IP.  
+Modify: `/prometheus-data/prometheus.yml`, replace `192.168.0.10` with your own host machine's IP.
 Host machine IP address: `ifconfig | grep 'inet 192'| awk '{ print $2}'`
 
 ```sh
-docker run -p 9090:9090 -v "$(pwd)/prometheus-data":/prometheus-data prom/prometheus -config.file=/prometheus-data/prometheus.yml
+docker run -p 9090:9090 -v "$(pwd)/prometheus-data":/prometheus-data prom/prometheus '--config.file=/prometheus-data/prometheus.yml'
 ```
 
 Open Prometheus: [http://localhost:9090](http://localhost:9090/graph)
@@ -51,7 +51,7 @@ sum(rate(http_request_duration_ms_count[1m])) by (service, route, method, code) 
 
 #### Apdex
 
-[Apdex](https://en.wikipedia.org/wiki/Apdex) score approximation:  
+[Apdex](https://en.wikipedia.org/wiki/Apdex) score approximation:
 `100ms` target and `300ms` tolerated response time
 
 ```
@@ -114,6 +114,40 @@ States of active alerts: `pending`, `firing`
 
 ![Prometheus - Alert Pending](/images/prometheus-alert-pending.png)
 ![Prometheus - Alert Firing](/images/prometheus-alert-firing.png)
+
+## Prometheus Alerts Manager
+
+### Add prometheus alerting configuration
+
+```yml
+# prometheus-data/prometheus.yml
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets: ['192.168.99.1:9093']
+```
+
+### Add prometheus alert manager setting
+
+```yml
+# prometheus-data/alertmanager.yml
+route:
+  receiver: 'slack'
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+      - send_resolved: true
+        username: 'prometheus'
+        channel: '#vn-shobo-backend'
+        api_url: 'https://hooks.slack.com/services/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'
+```
+
+### Run prometheus alert manager docker
+```sh
+export SLACK_HOOK=https://hooks.slack.com/services/xxxxx
+docker run -p 9093:9093 -v "$(pwd)/prometheus-data":/prometheus-data prom/alertmanager '--config.file=/prometheus-data/alertmanager.yml'
+```
 
 ## Grafana
 

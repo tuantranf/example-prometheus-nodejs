@@ -139,8 +139,8 @@ receivers:
     slack_configs:
       - send_resolved: true
         username: 'prometheus'
-        channel: '#vn-shobo-backend'
-        api_url: 'https://hooks.slack.com/services/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'
+        channel: '#channel'
+        api_url: 'https://hooks.slack.com/services/xxxx'
 ```
 
 ### Run prometheus alert manager docker
